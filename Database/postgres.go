@@ -17,7 +17,6 @@ func Access() (*gorm.DB, error) {
 		os.Getenv("DB_NAME"),
 		os.Getenv("DB_PASSWORD"),
 	)
-
 	db, err := gorm.Open(postgres.Open(dataSourceName), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("cannot open database: %v", err)
