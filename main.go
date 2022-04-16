@@ -1,81 +1,60 @@
 package main
 
 import (
-	"FinalProjectGO/Database"
-	"FinalProjectGO/Models"
+	"FinalProjectGO/API"
+	config "FinalProjectGO/pkg/config"
+	"FinalProjectGO/pkg/graceful"
+	logger "FinalProjectGO/pkg/logging"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"log"
+	"net/http"
+	"time"
 )
 
 func main() {
-	//Update query if items are already exist
-	product1 := Models.Product{
-		Id:        7,
-		Name:      "pro1",
-		Sku:       "w3",
-		UnitPrice: 15,
-		Quantity:  3,
+
+	// Set envs for local development
+	cfg, err := config.LoadConfig("./pkg/config/config-local")
+	if err != nil {
+		log.Fatalf("LoadConfig: %v", err)
 	}
-	product2 := Models.Product{
-		Id:        8,
-		Name:      "pro2",
-		Sku:       "w3",
-		UnitPrice: 15,
-		Quantity:  3,
+	// Set global logger
+	logger.NewLogger(cfg)
+	defer logger.Close()
+
+	gin.SetMode(gin.ReleaseMode)
+	r := gin.Default()
+	r.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
+		// your custom format
+		return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
+			param.ClientIP,
+			param.TimeStamp.Format(time.RFC1123),
+			param.Method,
+			param.Path,
+			param.Request.Proto,
+			param.StatusCode,
+			param.Latency,
+			param.Request.UserAgent(),
+			param.ErrorMessage,
+		)
+	}))
+	srv := &http.Server{
+		Addr:         fmt.Sprintf(":%s", cfg.ServerConfig.Port),
+		Handler:      r,
+		ReadTimeout:  time.Duration(cfg.ServerConfig.ReadTimeoutSecs * int64(time.Second)),
+		WriteTimeout: time.Duration(cfg.ServerConfig.WriteTimeoutSecs * int64(time.Second)),
 	}
 
-	n := []Models.Product{product1, product2}
-
-	basket1 := Models.Card{
-		Id:        1,
-		ProductId: product1.Id,
-		Product:   &product1,
-	}
-	var user1 = Models.User{
-		Id:       1,
-		Email:    "mail1",
-		Password: "123",
-		Role:     "admin",
-		Card:     &basket1,
-	}
-
-	db := Database.InitialMigration()
-	userDB1 := *Models.NewDBCreate(db) //Repoların orda
-	userDB1.Migrations()
-
-	userDB1.InsertUser(user1)
-	userDB1.InsertCard(basket1)
-
-	for _, pro := range n {
-		userDB1.InsertProduct(pro)
-	}
-	list, _ := Models.CSVtoProduct("ProductCSV.csv")
-
-	for _, pro := range list {
-		userDB1.InsertProduct(pro)
-	}
-	//for _, pro := range userDB1.ListProducts() {fmt.Println(pro)}
-	/*
-		for _, pro := range userDB1.FindProductByName("2") {
-			fmt.Println(pro.Name)
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
 		}
-		aw, _ := userDB1.GetProductByID(8)
-		fmt.Println(aw.Name)
+	}()
 
-		err := userDB1.DeleteProduct(*aw)
-		if err != nil {
-			fmt.Println(err)
-		}
-		fmt.Printf("\n %v", aw.Name)
-	*/
+	API.RegisterHandlers(r)
 
-	list2, _ := Models.CSVtoCategory("CategoryCSV.csv")
-	fmt.Println(list2)
-	for _, cat := range list2 {
-		fmt.Println(cat)
-		fmt.Println()
-		//_ = userDB1.Create(cat)
-		userDB1.InsertCategory(cat)
-	}
-	//for _, cat := range userDB1.ListCategory() {fmt.Println(cat.Name)}
+	log.Println("The service started")
+	graceful.ShutdownGin(srv, time.Duration(cfg.ServerConfig.TimeoutSecs*int64(time.Second)))
 
 }
