@@ -1,4 +1,4 @@
-package Users
+package users
 
 import (
 	config "FinalProjectGO/pkg/config"
@@ -8,7 +8,6 @@ import (
 	"log"
 )
 
-//DB işlemleri
 type UserRepository struct {
 	db *gorm.DB
 }
@@ -38,7 +37,6 @@ func (r *UserRepository) Migrations() {
 	}
 }
 
-// Create new user model to database
 func CreateUser(insert interface{}) error {
 	result := repo.db.Create(insert)
 
@@ -48,7 +46,6 @@ func CreateUser(insert interface{}) error {
 	return nil
 }
 
-// IsUserExist checks if user exist
 func IsUserExist(email string) bool {
 	flag := true
 	var user Users

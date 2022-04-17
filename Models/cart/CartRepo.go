@@ -41,11 +41,23 @@ func (d *CartRepository) InsertCart(Card1 Cart) {
 	d.db.FirstOrCreate(&Card1)
 }
 
-func CreateCartTable(insert interface{}) error {
-	result := repo.db.Create(insert)
+func CreateCardTable(cart *Cart) {
+	db.Create(cart)
+}
 
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
+func SearchById(id uint) *Cart {
+	var cart Cart
+	db.Where("id = ?", id).First(&cart)
+	return &cart
+}
+
+func Update(cart *Cart) {
+	db.Save(cart)
+}
+
+func UpdateUserCart(userId uint, newAmount int, newPrice float64) {
+	usersCart := SearchById(userId)
+	usersCart.Amount += newAmount
+	usersCart.TotalPrice += newPrice
+	Update(usersCart)
 }

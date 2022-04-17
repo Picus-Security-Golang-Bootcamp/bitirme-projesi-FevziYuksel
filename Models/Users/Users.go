@@ -1,17 +1,12 @@
-package Users
+package users
 
 import "gorm.io/gorm"
 
-//unique id ve cart'ı düzelt
 type Users struct {
 	gorm.Model
-	//Id       uint   `json:"id" gorm:"primarykey"`
 	Email    string `json:"email" validate:"email"`
 	Password string `json:"password" validate:"min=2,max=20"`
 	Role     string `json:"role" gorm:"default:costumer"`
-	//CreatedAt time.Time
-	//UpdatedAt time.Time
-	//DeletedAt sql.NullTime `gorm:"index"`
 }
 
 func NewUser(email string, password string, role string) *Users {

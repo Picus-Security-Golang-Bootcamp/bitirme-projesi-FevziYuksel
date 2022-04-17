@@ -1,12 +1,10 @@
 package CartHandler
 
-//CardHandler a taşıdım
-/*
 type RequestBody struct {
 	ID     uint `json:"id"`
 	Amount int  `json:"amount"`
 }
-*/
+
 type Product struct {
 	ProductName string  `json:"product_name"`
 	Amount      int     `json:"amount"`

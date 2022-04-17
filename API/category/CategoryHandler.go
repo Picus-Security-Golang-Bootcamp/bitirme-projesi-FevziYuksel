@@ -19,8 +19,7 @@ func (c *CategoryHandler) CreateBulkCategory(context *gin.Context) {
 	file, err := context.FormFile("file")
 	if err != nil {
 		context.JSON(400, gin.H{
-			//"message": helpers.FileError.Error(),
-			"message": "Problem with file",
+			"message": "FileError",
 		})
 		context.Abort()
 		return

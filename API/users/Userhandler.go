@@ -2,6 +2,7 @@ package UserHandler
 
 import (
 	"FinalProjectGO/API/bodyDecoder"
+	"FinalProjectGO/Models/cart"
 	User "FinalProjectGO/Models/users"
 	jwt_helper "FinalProjectGO/pkg/jwt"
 	"errors"
@@ -23,25 +24,10 @@ func NewUserHandler() *UserHandler {
 //CheckUser Bloğunu kontrol et sonra sil
 func (h *UserHandler) CheckUser(user *User.Users) error {
 	if User.IsUserExist(user.GetEmail()) {
-		//return helpers.UserExistsError
-		return errors.New("helpers.UserExistsError")
+		return errors.New("UserExistsError")
 	}
 	return nil
-	//newUser'ın hemen altına
-	//CheckUser Bloğunu kontrol et sonra sil
-	/*
-		if err := h.CheckUser(newUser); err != nil {
-			context.JSON(http.StatusSeeOther, gin.H{
-				"message": err.Error(),
-			})
-			context.Abort()
-			return
-		}
-
-	*/
 }
-
-// CreateUser creates a new user
 func (h *UserHandler) CreateUser(context *gin.Context) {
 	var body User.Users
 	err := bodyDecoder.DecodeBody(&body, context)
@@ -51,10 +37,9 @@ func (h *UserHandler) CreateUser(context *gin.Context) {
 
 	newUser := User.NewUser(body.GetEmail(), body.GetPassword(), body.GetRole())
 
-	if User.IsUserExist(newUser.GetEmail()) {
-		//return helpers.UserExistsError
+	if err := h.CheckUser(newUser); err != nil {
 		context.JSON(http.StatusSeeOther, gin.H{
-			"message": errors.New("helpers.UserExistsError"),
+			"message": err.Error(),
 		})
 		context.Abort()
 		return
@@ -70,9 +55,8 @@ func (h *UserHandler) CreateUser(context *gin.Context) {
 		"message": "User created successfully",
 		"token":   token,
 	})
-
-	// Creates cart for new user
-	//cart.Create(cart.NewCartRepository(newUser.ID))
+	//New Cart for each User
+	cart.CreateCardTable(cart.NewCart(newUser.ID))
 }
 
 //Login block
@@ -106,13 +90,11 @@ func (h *UserHandler) CheckLogin(body User.Users) (*User.Users, error) {
 	users := User.SearchByEmail(body)
 	fmt.Println(users)
 	if len(users) == 0 {
-		//return nil, helpers.UserNotFoundError
-		return nil, errors.New("UserNotFoundError")
+		return nil, errors.New("user is not found")
 	}
 
 	if users[0].GetPassword() != body.GetPassword() {
-		//return nil, helpers.InvalidPasswordError
-		return nil, errors.New("InvalidPasswordError")
+		return nil, errors.New("invalid password")
 	}
 	return &users[0], nil
 }
