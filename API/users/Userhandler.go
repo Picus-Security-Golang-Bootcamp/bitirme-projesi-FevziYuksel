@@ -14,20 +14,27 @@ import (
 type UserHandler struct {
 }
 
-//Constructor
 func NewUserHandler() *UserHandler {
 	return &UserHandler{}
 }
 
-//Signup block
-
-//CheckUser Bloğunu kontrol et sonra sil
-func (h *UserHandler) CheckUser(user *User.Users) error {
-	if User.IsUserExist(user.GetEmail()) {
-		return errors.New("UserExistsError")
-	}
-	return nil
+type Users struct {
+	Email    string
+	Password string
 }
+
+// CreateUser godoc
+// @Summary Sign in to system with username and password
+// @Tags Users
+// @Accept  json
+// @Produce  json
+// @Param RequestBody body Users true "Sign in info"
+// @Success 200
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /user/signup [post]
 func (h *UserHandler) CreateUser(context *gin.Context) {
 	var body User.Users
 	err := bodyDecoder.DecodeBody(&body, context)
@@ -58,9 +65,25 @@ func (h *UserHandler) CreateUser(context *gin.Context) {
 	//New Cart for each User
 	cart.CreateCardTable(cart.NewCart(newUser.ID))
 }
+func (h *UserHandler) CheckUser(user *User.Users) error {
+	if User.IsUserExist(user.GetEmail()) {
+		return errors.New("UserExistsError")
+	}
+	return nil
+}
 
-//Login block
-
+// Login godoc
+// @Summary login to system with username and password
+// @Tags Users
+// @Accept  json
+// @Produce  json
+// @Param RequestBody body Users true "Login info"
+// @Success 200
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /user/login [post] //router
 func (h *UserHandler) Login(context *gin.Context) {
 	var body User.Users
 
@@ -70,7 +93,6 @@ func (h *UserHandler) Login(context *gin.Context) {
 			"error": err.Error(),
 		})
 	}
-
 	loggedUser, err := h.CheckLogin(body)
 	if err != nil {
 		context.JSON(http.StatusUnauthorized, gin.H{

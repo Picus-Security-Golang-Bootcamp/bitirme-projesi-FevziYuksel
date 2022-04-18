@@ -3,9 +3,7 @@ package CartHandler
 import (
 	"FinalProjectGO/API/bodyDecoder"
 	"FinalProjectGO/Models/cart"
-	"FinalProjectGO/Models/product"
 	jwt_helper "FinalProjectGO/pkg/jwt"
-	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -19,6 +17,23 @@ func NewCartHandler() *CartHandler {
 	return &CartHandler{}
 }
 
+type Carts struct {
+}
+
+// AddProductToCart godoc
+// @Summary Add a product to cart
+// @Tags Carts
+// @Accept  json
+// @Produce  json
+// @Param RequestBody body RequestBody true "Product"
+// @Success 200
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security ApiKeyAuth
+// @param Authorization header string true "Authorization"
+// @Router /cart/add [post]
 func (c *CartHandler) AddProductToCart(context *gin.Context) {
 
 	var body RequestBody
@@ -34,10 +49,12 @@ func (c *CartHandler) AddProductToCart(context *gin.Context) {
 		return
 	}
 	fmt.Println(body)
-	chosenProduct, err := AddProductToCart(body.ID, body.Amount, decodedToken.UserId)
+	chosenProduct, errCheck, err := AddProductToCart(body.ID, body.Amount, decodedToken.UserId)
 
 	if err != nil {
-		if err == errors.New("ProductAlreadyExistInCart") {
+
+		if errCheck {
+
 			cartDetails, _ := UpdateProductInCart(body.ID, decodedToken.UserId, body.Amount)
 			newAmount := body.Amount + cartDetails.Amount
 			newTotalPrice := cartDetails.TotalPrice + (float64(newAmount) * cartDetails.UnitPrice)
@@ -56,10 +73,8 @@ func (c *CartHandler) AddProductToCart(context *gin.Context) {
 
 	newTotalPrice := chosenProduct.Price * float64(body.Amount)
 
-	//Update user's cart
 	cart.UpdateUserCart(decodedToken.UserId, body.Amount, newTotalPrice)
 
-	//Create shopped cart detail
 	cart.CreateCartDetails(&cart.CartDetails{
 		ProductName: chosenProduct.ProductName,
 		CartId:      decodedToken.UserId,
@@ -73,6 +88,19 @@ func (c *CartHandler) AddProductToCart(context *gin.Context) {
 
 }
 
+// GetCartList godoc
+// @Summary List card contents
+// @Tags Carts
+// @Accept  json
+// @Produce  json
+// @Success 200
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security ApiKeyAuth
+// @param Authorization header string true "Authorization"
+// @Router /cart/list [get]
 func (c *CartHandler) GetCartList(context *gin.Context) {
 	decodedToken, err := jwt_helper.VerifyToken(context.GetHeader("Authorization"))
 	if err != nil {
@@ -105,6 +133,20 @@ func (c *CartHandler) GetCartList(context *gin.Context) {
 
 }
 
+// DeleteProductFromCart godoc
+// @Summary Delete a product in cart
+// @Tags Carts
+// @Accept  json
+// @Produce  json
+// @Param id query int false "id"
+// @Success 200
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security ApiKeyAuth
+// @param Authorization header string true "Authorization"
+// @Router /cart/delete [delete]
 func (c *CartHandler) DeleteProductFromCart(context *gin.Context) {
 	decodedToken, err := jwt_helper.VerifyToken(context.GetHeader("Authorization"))
 	if err != nil {
@@ -114,6 +156,7 @@ func (c *CartHandler) DeleteProductFromCart(context *gin.Context) {
 	}
 
 	id, isOk := context.GetQuery("id")
+
 	if !isOk {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "IdIsRequiredError"})
 		context.Abort()
@@ -121,6 +164,7 @@ func (c *CartHandler) DeleteProductFromCart(context *gin.Context) {
 	}
 
 	productId, err := strconv.Atoi(id)
+
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "InvalidIdError"})
 		context.Abort()
@@ -144,6 +188,20 @@ func (c *CartHandler) DeleteProductFromCart(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"message": "Product deleted from cart"})
 }
 
+// UpdateProductInCart godoc
+// @Summary Update a product in cart
+// @Tags Carts
+// @Accept  json
+// @Produce  json
+// @Param RequestBody body RequestBody true "Product"
+// @Success 200
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security ApiKeyAuth
+// @param Authorization header string true "Authorization"
+// @Router /cart/update [put]
 func (c *CartHandler) UpdateProductInCart(context *gin.Context) {
 	var body RequestBody
 	decodedToken, err := jwt_helper.VerifyToken(context.GetHeader("Authorization"))
@@ -156,13 +214,6 @@ func (c *CartHandler) UpdateProductInCart(context *gin.Context) {
 	err = bodyDecoder.DecodeBody(&body, context)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		context.Abort()
-		return
-	}
-
-	chosenProduct := product.SearchById(body.ID)
-	if chosenProduct.Stock < body.Amount {
-		context.JSON(http.StatusBadRequest, gin.H{"message": "ProductNotEnoughStockError"})
 		context.Abort()
 		return
 	}

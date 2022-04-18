@@ -45,6 +45,7 @@ func CreateOrderTable(order *Order) {
 
 func SearchById(id uint, userId uint) *Order {
 	var model Order
+
 	db.Where("id = ? AND user_id = ?", id, userId).Find(&model)
 
 	return &model

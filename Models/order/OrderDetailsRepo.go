@@ -12,7 +12,7 @@ type OrderDetailRepository struct {
 }
 
 var (
-	orderDetailRepo *OrderRepository
+	orderDetailRepo *OrderDetailRepository
 )
 
 func init() {
@@ -21,7 +21,7 @@ func init() {
 		log.Fatalf("LoadConfig: %v", err)
 	}
 	db = database.Connect(cfg)
-	orderDetailRepo = (*OrderRepository)(NewOrderDetailRepository(db))
+	orderDetailRepo = NewOrderDetailRepository(db)
 	orderDetailRepo.Migration()
 }
 
@@ -32,7 +32,7 @@ func NewOrderDetailRepository(db *gorm.DB) *OrderDetailRepository {
 }
 
 func (d *OrderDetailRepository) Migration() {
-	err := db.AutoMigrate(&Order{})
+	err := db.AutoMigrate(&OrderDetails{})
 	if err != nil {
 		panic(err)
 	}
@@ -47,7 +47,6 @@ func CreateOrderDetailTable(orderId uint, productId uint, amount int, unitPrice 
 		TotalPrice:  totalPrice,
 		ProductName: productName,
 	}
-
 	db.Create(table)
 }
 

@@ -3,7 +3,6 @@ package users
 import (
 	config "FinalProjectGO/pkg/config"
 	database "FinalProjectGO/pkg/database"
-	"fmt"
 	"gorm.io/gorm"
 	"log"
 )
@@ -60,7 +59,6 @@ func SearchByEmail(body Users) []Users {
 	var users []Users
 	db.Find(&users)
 	email := body.GetEmail()
-	fmt.Println(email)
 	db.Where("email LIKE ? ", email).Find(&users)
 	return users
 }

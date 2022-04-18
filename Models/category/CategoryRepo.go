@@ -49,6 +49,11 @@ func GetCategoryId(name string) uint {
 	db.Where("name = ?", name).Find(&category)
 	return category.ID
 }
+func GetCategoryById(id uint) Category {
+	var category Category
+	db.Where("id = ?", id).Find(&category)
+	return category
+}
 
 func CreateCategoryTable(insert interface{}) error {
 	result := repo.db.Create(insert)
@@ -62,4 +67,12 @@ func FindAllCategories() []Category {
 	var category []Category
 	db.Find(&category)
 	return category
+}
+func GetAllCategories(pageIndex, pageSize int) ([]Category, int) {
+	var categories []Category
+
+	allCategories := FindAllCategories()
+	db.Offset((pageIndex - 1) * pageSize).Limit(pageSize).Find(&categories)
+
+	return categories, len(allCategories)
 }

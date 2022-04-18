@@ -19,6 +19,28 @@ func NewProductHandler() *ProductHandler {
 	return &ProductHandler{}
 }
 
+type Product struct {
+	ProductName  string
+	Price        float64
+	Stock        int
+	CategoryName string
+	SKU          string
+}
+
+// CreateProduct godoc
+// @Summary Create a product
+// @Tags Product
+// @Accept  json
+// @Produce  json
+// @Param RequestBody body Product false "Product"
+// @Success 200
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security ApiKeyAuth
+// @param Authorization header string true "Authentication"
+// @Router /product/create [post]
 func (p *ProductHandler) CreateProduct(context *gin.Context) {
 	var body product.Product
 
@@ -58,6 +80,20 @@ func (p *ProductHandler) CreateProduct(context *gin.Context) {
 		"message": "Product created successfully",
 	})
 }
+
+// ListProducts godoc
+// @Summary List all products
+// @Tags Product
+// @Accept  json
+// @Produce  json
+// @Param page query int false "Page Index"
+// @Param pageSize query int false "Page Size"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /product/list [get]
 func (p *ProductHandler) ListProducts(context *gin.Context) {
 	pageIndex, pageSize := pagination.GetPaginationParametersFromRequest(context)
 	products, allProducts := product.GetAllProducts(pageIndex, pageSize)
@@ -87,6 +123,21 @@ func (p *ProductHandler) ListProducts(context *gin.Context) {
 		"Products": output,
 	})
 }
+
+// SearchProduct godoc
+// @Summary Search a product
+// @Tags Product
+// @Accept  json
+// @Produce  json
+// @Param search query string false "search"
+// @Param page query int false "Page Index"
+// @Param pageSize query int false "Page Size"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /product/search [get]
 func (p *ProductHandler) SearchProduct(context *gin.Context) {
 
 	search, isOk := context.GetQuery("search")
@@ -135,6 +186,20 @@ func (p *ProductHandler) SearchProduct(context *gin.Context) {
 	})
 }
 
+// DeleteProduct godoc
+// @Summary Delete a product
+// @Tags Product
+// @Accept  json
+// @Produce  json
+// @Param id query int true "id"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security ApiKeyAuth
+// @param Authorization header string true "Authorization"
+// @Router /product/delete [delete]
 func (p *ProductHandler) DeleteProduct(context *gin.Context) {
 	productId, isOk := context.GetQuery("id")
 
@@ -182,6 +247,24 @@ func (p *ProductHandler) DeleteProduct(context *gin.Context) {
 	})
 }
 
+// UpdateProduct godoc
+// @Summary Update a product
+// @Tags Product
+// @Accept  json
+// @Produce  json
+// @Param id query int false "id"
+// @Param newStock query int true "stock"
+// @Param newPrice query int true "price"
+// @Param newName query string true "name"
+// @Param newSku query string true "sku"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security ApiKeyAuth
+// @param Authorization header string true "Authorization"
+// @Router /product/update [put]
 func (p *ProductHandler) UpdateProduct(context *gin.Context) {
 	id, isProductId := context.GetQuery("id")
 	newStock, isStock := context.GetQuery("stock")
@@ -214,7 +297,6 @@ func (p *ProductHandler) UpdateProduct(context *gin.Context) {
 		context.Abort()
 		return
 	}
-
 	if isStock {
 		stock, err := strconv.Atoi(newStock)
 		if err != nil || stock <= 0 {
@@ -250,7 +332,6 @@ func (p *ProductHandler) UpdateProduct(context *gin.Context) {
 	cartsHasChosenProduct := cart.GetCartDetailsByProductId(chosenProduct.ID)
 	cartIsEmpty := len(*cartsHasChosenProduct) == 0
 
-	// Updates price
 	if isPrice {
 		price, err := strconv.ParseFloat(newPrice, 64)
 		if err != nil || price <= 0 {
@@ -276,7 +357,6 @@ func (p *ProductHandler) UpdateProduct(context *gin.Context) {
 		product.UpdatePrice(*chosenProduct, price)
 	}
 
-	// Updates name
 	if isName {
 		if chosenProduct.ProductName == newName {
 			context.JSON(http.StatusAlreadyReported, gin.H{

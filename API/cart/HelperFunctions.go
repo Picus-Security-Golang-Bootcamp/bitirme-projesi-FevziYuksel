@@ -14,27 +14,26 @@ func GetCartList(userId uint) (*[]cart.CartDetails, error) {
 	return allCartDetails, nil
 }
 
-// AddProductToCart checks if the product is already in the cart, stock is enough and adds the product to the cart
-func AddProductToCart(productId uint, amount int, userId uint) (*product.Product, error) {
+func AddProductToCart(productId uint, amount int, userId uint) (*product.Product, bool, error) {
 
 	chosenProduct := product.SearchById(productId)
 	if chosenProduct.ID == 0 {
-		return nil, errors.New("ProductNotFoundError")
+		return nil, false, errors.New("ProductNotFoundError")
 	}
 
 	if chosenProduct.Stock <= amount {
-		return nil, errors.New("ProductNotEnoughStockError")
+		return nil, false, errors.New("ProductNotEnoughStockError")
 	}
 
 	if amount <= 0 {
-		return nil, errors.New("InvalidNumberOfProductsError")
+		return nil, false, errors.New("InvalidNumberOfProductsError")
 	}
 
 	if cart.IsProductExist(userId, productId) {
-		return nil, errors.New("ProductAlreadyExistInCart")
+		return nil, false, errors.New("ProductAlreadyExistInCart")
 	}
 
-	return chosenProduct, nil
+	return chosenProduct, true, nil
 }
 
 func UpdateProductInCart(productId uint, userId uint, amount int) (*cart.CartDetails, error) {

@@ -2,6 +2,7 @@ package bodyDecoder
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
@@ -17,24 +18,27 @@ type ApiError struct {
 func DecodeBody(body interface{}, context *gin.Context) error {
 	if context.Request.Header.Get("Content-Type") != "application/json" {
 		return errors.New("UnsupportedMediaType")
-		//return UnsupportedMediaType
+
 	}
 
 	if err := context.ShouldBindJSON(body); err != nil {
 		return err
+		fmt.Println(1)
 	}
-
+	fmt.Println(2)
 	if err := val.Struct(body); err != nil {
 		var ve validator.ValidationErrors
 		if errors.As(err, &ve) {
 			out := make([]ApiError, len(ve))
 			for i, fe := range ve {
 				out[i] = ApiError{fe.Field(), msgForTag(fe.Tag())}
+				fmt.Println(3)
 			}
+
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": out})
 			context.Abort()
 			return errors.New("InvalidFieldError")
-			//return InvalidFieldError
+
 		}
 		return err
 	}

@@ -1,7 +1,18 @@
-Id,Name,Sku,UnitPrice,Quantity
-1,Product1,KS9363,528,10
-2,Product2,KS9343,309,8
-3,Product3,KS9455,464,5
-4,Product4,KS9334,352,9
-5,Product5,KS7334,565,11
-6,Product6,KS8456,116,14
+Product Name,Price,Stock,UnitPrice,Category ID ,Category Name,Sku
+Product1,10,10,1,1,Category1,KS9363
+Product2,20,500,1,2,Category2,KS9343
+Product3,30,30,2,3,Category3,KS9455
+Product4,50,50,2,4,Category4,KS9334
+Product5,80,80,2,7,Category7,KS7334
+Product7,90,90,2,5,Category5,KS8456
+Product8,34,34,3,15,Category15,KS456
+Product9,566,566,3,6,Category6,KS73784
+Product10,67,67,3,8,Category8,KS73454
+Product11,545,545,3,3,Category3,KS9734
+Product12,45,45,3,7,Category7,K45334
+Product13,677,677,3,4,Category4,KS9389
+Product14,656,455,4,9,Category9,KS97654
+Product15,6776,44,4,2,Category2,KS95534
+,,,,,,
+,,,,,,
+ ,,,,,,

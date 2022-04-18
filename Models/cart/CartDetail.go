@@ -13,6 +13,6 @@ type CartDetails struct {
 	TotalPrice  float64         `json:"total_price"`
 	ProductId   uint            `json:"product_id"`
 	CartId      uint            `json:"cart_id"`
-	Product     Product.Product `gorm:"foreignkey:ProductId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	Cart        Cart            `gorm:"foreignkey:CartId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Product     Product.Product `gorm:"foreignkey:ProductId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` //
+
 }

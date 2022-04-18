@@ -18,3 +18,6 @@ func NewCategory(name string) Category {
 func (c *Category) GetName() string {
 	return c.Name
 }
+func (c *Category) GetId() uint {
+	return c.ID
+}

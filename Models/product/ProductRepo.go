@@ -81,7 +81,6 @@ func SearchProduct(queryString string) []Product {
 	return products
 }
 
-// SearchProductWithPagination searches products by product name and sku and returns []Product
 func SearchProductWithPagination(queryString string, pageIndex, pageSize int) []Product {
 	var products []Product
 	db.Where("product_name LIKE ?", "%"+queryString+"%").Or(db.Where("sku LIKE ?", "%"+queryString+"%")).Offset((pageIndex - 1) * pageSize).Limit(pageSize).Find(&products)
@@ -89,7 +88,6 @@ func SearchProductWithPagination(queryString string, pageIndex, pageSize int) []
 	return products
 }
 
-// SearchById searches products by product id and returns Product
 func SearchById(id uint) *Product {
 	var product Product
 	db.Where("id = ?", id).Find(&product)
@@ -97,36 +95,30 @@ func SearchById(id uint) *Product {
 	return &product
 }
 
-// UpdateStock updates product stock
 func UpdateStock(p Product, newStock int) {
 	p.Stock = newStock
 	db.Save(&p)
 }
 
-// UpdateName updates product name
 func UpdateName(p Product, newProductName string) {
 	p.ProductName = newProductName
 	db.Save(&p)
 }
 
-// UpdatePrice updates product price
 func UpdatePrice(p Product, newPrice float64) {
 	p.Price = newPrice
 	db.Save(&p)
 }
 
-// UpdateSKU updates product sku
 func UpdateSKU(p Product, newSKU string) {
 	p.SKU = newSKU
 	db.Save(&p)
 }
 
-// DeleteProduct Deletes product from db
 func DeleteProduct(p Product) {
 	db.Delete(&p)
 }
 
-// SearchBySKU searches product by sku and returns Product
 func SearchBySKU(sku string) *Product {
 	var product Product
 	db.Where("sku = ?", sku).Find(&product)
@@ -134,10 +126,11 @@ func SearchBySKU(sku string) *Product {
 	return &product
 }
 
-// SearchByProductName searches products by product name and returns Product
 func SearchByProductName(productName string) *Product {
 	var product Product
 	db.Where("product_name = ?", productName).Find(&product)
-
 	return &product
+}
+func InitializeProduct(products *Product) {
+	db.Create(products)
 }

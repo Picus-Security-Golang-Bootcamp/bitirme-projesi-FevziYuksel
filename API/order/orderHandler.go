@@ -15,11 +15,28 @@ import (
 
 type OrderHandler struct {
 }
+type DecodedToken struct {
+	UserId uint   `json:"userId"`
+	Email  string `json:"email"`
+}
 
 func NewOrderHandler() *OrderHandler {
 	return &OrderHandler{}
 }
 
+// GetOrderList godoc
+// @Summary Get order list
+// @Tags Order
+// @Accept  json
+// @Produce  json
+// @Success 200
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security ApiKeyAuth
+// @param Authorization header string true "Authorization"
+// @Router /order/list [get]
 func (o *OrderHandler) GetOrderList(context *gin.Context) {
 	decodedToken, _ := jwt_helper.VerifyToken(context.GetHeader("Authorization"))
 
@@ -45,6 +62,20 @@ func (o *OrderHandler) GetOrderList(context *gin.Context) {
 	})
 }
 
+// GetOrderDetails godoc
+// @Summary Get order detail
+// @Tags Order
+// @Accept  json
+// @Produce  json
+// @Param id query int true "id"
+// @Success 200
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security ApiKeyAuth
+// @param Authorization header string true "Authorization"
+// @Router /order/detail [get]
 func (o *OrderHandler) GetOrderDetails(context *gin.Context) {
 	decodedToken, _ := jwt_helper.VerifyToken(context.GetHeader("Authorization"))
 	id, isOk := context.GetQuery("id")
@@ -60,6 +91,7 @@ func (o *OrderHandler) GetOrderDetails(context *gin.Context) {
 		context.Abort()
 		return
 	}
+
 	chosenOrder := order.SearchById(uint(orderId), decodedToken.UserId)
 
 	if chosenOrder.ID == 0 {
@@ -67,7 +99,9 @@ func (o *OrderHandler) GetOrderDetails(context *gin.Context) {
 		context.Abort()
 		return
 	}
+	fmt.Println(chosenOrder)
 	orderDetails := order.FindOrderDetails(uint(orderId))
+
 	outPut := make([]Product, len(orderDetails))
 	for i, orderDetail := range orderDetails {
 		outPut[i] = Product{
@@ -84,6 +118,20 @@ func (o *OrderHandler) GetOrderDetails(context *gin.Context) {
 
 }
 
+// CancelOrder godoc
+// @Summary Cancel order
+// @Tags Order
+// @Accept  json
+// @Produce  json
+// @Param id query int true "id"
+// @Success 200
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security ApiKeyAuth
+// @param Authorization header string true "Authorization"
+// @Router /order/cancel [delete]
 func (o *OrderHandler) CancelOrder(context *gin.Context) {
 	decodedToken, _ := jwt_helper.VerifyToken(context.GetHeader("Authorization"))
 	id, isOk := context.GetQuery("id")
@@ -121,6 +169,7 @@ func (o *OrderHandler) CancelOrder(context *gin.Context) {
 		"message": "Order has been canceled",
 	})
 }
+
 func checkOrderTime(orderId uint, userId uint) error {
 	checkOrder := order.SearchById(orderId, userId)
 	if checkOrder.ID == 0 {
@@ -135,6 +184,19 @@ func checkOrderTime(orderId uint, userId uint) error {
 	return nil
 }
 
+// CreateOrder godoc
+// @Summary Check the user's cart out
+// @Tags Order
+// @Accept  json
+// @Produce  json
+// @Success 200
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security ApiKeyAuth
+// @param Authorization header string true "Authorization"
+// @Router /order/checkout [post]
 func (o *OrderHandler) CreateOrder(context *gin.Context) {
 
 	decodedToken, _ := jwt_helper.VerifyToken(context.GetHeader("Authorization"))
@@ -142,12 +204,11 @@ func (o *OrderHandler) CreateOrder(context *gin.Context) {
 	allProductsInCart := cart.GetAllCartDetailsOfUser(decodedToken.UserId)
 	if len(*allProductsInCart) == 0 {
 		context.JSON(http.StatusBadRequest, gin.H{
-			"message": errors.New("CartIsEmptyError"),
+			"message": "CartIsEmptyError",
 		})
 		context.Abort()
 		return
 	}
-
 	var outOfStockProducts []string
 	for _, productInCart := range *allProductsInCart {
 		chosenProduct := product.SearchById(productInCart.ProductId)

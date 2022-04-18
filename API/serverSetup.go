@@ -1,12 +1,13 @@
-package main
+package API
 
 import (
-	"FinalProjectGO/API"
 	"FinalProjectGO/pkg/config"
 	"FinalProjectGO/pkg/graceful"
 	logger "FinalProjectGO/pkg/logging"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"log"
 	"net/http"
 	"time"
@@ -44,14 +45,14 @@ func ServerSetup() {
 		ReadTimeout:  time.Duration(cfg.ServerConfig.ReadTimeoutSecs * int64(time.Second)),
 		WriteTimeout: time.Duration(cfg.ServerConfig.WriteTimeoutSecs * int64(time.Second)),
 	}
-
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
 
-	API.RegisterHandlers(r)
+	RegisterHandlers(r)
 
 	log.Println("The service started")
 	graceful.ShutdownGin(srv, time.Duration(cfg.ServerConfig.TimeoutSecs*int64(time.Second)))
